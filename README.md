@@ -1,1 +1,1 @@
-# coventures-assets
+# Coventures assets

@@ -42,19 +42,19 @@ float sdUnion_s( float a, float b, float k ) {
 
 float droplet( vec3 p, float dist ) {
   // Decrease radius when droplet is inside sphere
-  float radius = min(u_scroll - 0.8, 0.4);
+  float radius = min(u_scroll - 0.4, 0.6);
   float box = sdBox(
       vec3(
-          p.x + (radius + dist),
-          p.y + (radius + dist),
-          p.z + (radius)
+          p.x + radius,
+          p.y + radius,
+          p.z + radius
       ),
       vec3(radius)
   );
   float sphere = sdSphere(
       vec3(
-          p.x + dist,
-          p.y + dist,
+          p.x,
+          p.y,
           p.z
       ),
       radius
@@ -74,66 +74,17 @@ float round(float x) {
     return sign(x) * floor(abs(x)+0.5);
 }
 
-float mix_droplets(float droplets, vec3 pos, float angle_var, float angle_var_2, float distance_var) {
-    // float rotation1 = i * HALF_PI + j * QUARTER_PI + angle_var;
-    // float rotation2 = j * PI;
-    // float rotation3 = angle_var_2;
-
+float dist_field( vec3 p ) {
+    vec3 pos = p;
     pos.xy = rot(pos.xy, -QUARTER_PI);
     pos.xz = rot(pos.xz, 0.0);
     pos.yz = rot(pos.yz, PI);
 
-    float droplet = droplet(pos, max(u_scroll -0.9, 0.0));
-    return sdUnion(droplets, droplet);
-}
+    float dr = droplet(pos, max(u_scroll -0.9, 0.0));
+    float dist = max(u_scroll * 1.5 - 1.5, 0.0);
+    float sphere = sdSphere( vec3(p.x, p.y + dist, p.z), 0.6 );
 
-float all_droplets(vec3 p) {
-    float droplets = 1.0;
-
-    // droplets = mix_droplets(0.0, droplets, p, 0.0, 1.3);
-    // droplets = mix_droplets(1.0, droplets, p, 0.3, 0.9);
-    // droplets = mix_droplets(2.0, droplets, p, -0.2, 1.0);
-    // droplets = mix_droplets(3.0, droplets, p, 0.1, 1.8);
-    // droplets = mix_droplets(4.0, droplets, p, -0.2, 1.0);
-    // droplets = mix_droplets(5.0, droplets, p, 0.2, 1.2);
-    // droplets = mix_droplets(6.0, droplets, p, 0.0, 1.0);
-    // droplets = mix_droplets(7.0, droplets, p, -0.1, 1.25);
-
-    // droplets = mix_droplets(0.0, droplets, p, 0.0, -0.5, 1.3);
-    // droplets = mix_droplets(1.0, droplets, p, 0.3, 0.0, 0.9);
-    // droplets = mix_droplets(2.0, droplets, p, -0.2, 0.0, 1.0);
-    // droplets = mix_droplets(3.0, droplets, p, 0.1, 0.0, 1.8);
-    
-    
-    // droplets = mix_droplets(4.0, droplets, p, HALF_PI, 0.0, 1.0);
-    droplets = mix_droplets(droplets, p, 0.0, 0.0, 1.0);
-
-
-
-
-    // droplets = mix_droplets(5.0, droplets, p, 0.2, 0.0, 1.2);
-    // droplets = mix_droplets(6.0, droplets, p, 0.1, -0.9, 1.0);
-    // droplets = mix_droplets(6.0, droplets, p, 0.1, -0.2, 1.0);
-    // droplets = mix_droplets(7.0, droplets, p, -0.1, 0.0, 1.25);
-
-    // droplets = mix_droplets(0.0, droplets, p, 1.0, -0.2, 0.0);
-    // droplets = mix_droplets(1.0, droplets, p, 0.2, -1.9, 0.9);
-    // droplets = mix_droplets(2.0, droplets, p, 0.2, -1.8, 1.0);
-    // droplets = mix_droplets(3.0, droplets, p, 0.1, -1.5, 1.8);
-
-    return droplets;
-}
-
-// get distance in the world
-float dist_field( vec3 p ) {
-    float dist = sin( u_time * 2.0 ) * 0.5 + 0.5;
-    float radiusSmall = 0.4;
-    float droplets = all_droplets(p);
-
-    // float sphere = sdSphere( vec3(p.x, p.y, p.z), 0.6 * min(max(u_scroll * 5.0, 0.0), 1.0) );
-    float sphere = sdSphere( vec3(p.x, p.y, p.z), 0.6 );
-
-    return sdUnion_s(droplets, sphere, 0.3);
+    return sdUnion_s(dr, sphere, 0.3);
 }
 
 // get gradient in the world
@@ -191,11 +142,10 @@ vec3 shading( vec3 v, vec3 n, vec3 dir, vec3 eye ) {
   vec3 mix_colors = mix(
     vec3(0.0, 0.776, 0.756),
     vec3(1.0, 0.4824, 0.67),
-    v.y > 0.6 ? 1.0 :
     smoothstep(
-      (1.5 - max(u_scroll, 1.0)) + 0.4,
-      (1.5 - max(u_scroll, 1.0)),
-      length( v.xy + vec2(0.0, -QUARTER_PI) )
+      1.2,
+      0.7,
+      length( v.xy + vec2(0.0, -QUARTER_PI))
     )
   );
 
@@ -238,18 +188,8 @@ bool ray_marching( vec3 o, vec3 dir, inout float depth, inout vec3 n ) {
     }
 
     if ( d >= 0.001 ) {
-        return false;
+      return false;
     }
-
-    // t -= dt;
-    // for ( int i = 0; i < 4; i++ ) {
-    //     dt *= 0.5;
-
-    //     vec3 v = o + dir * ( t + dt );
-    //     if ( dist_field( v ) >= 0.001 ) {
-    //         t += dt;
-    //     }
-    // }
 
     depth = t;
     n = normalize( gradient( o + dir * t ) );

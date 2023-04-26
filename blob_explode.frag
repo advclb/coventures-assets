@@ -91,15 +91,6 @@ float mix_droplets(float i, float droplets, vec3 pos, float angle_var, float ang
 float all_droplets(vec3 p) {
     float droplets = 1.0;
 
-    // droplets = mix_droplets(0.0, droplets, p, 0.0, 1.3);
-    // droplets = mix_droplets(1.0, droplets, p, 0.3, 0.9);
-    // droplets = mix_droplets(2.0, droplets, p, -0.2, 1.0);
-    // droplets = mix_droplets(3.0, droplets, p, 0.1, 1.8);
-    // droplets = mix_droplets(4.0, droplets, p, -0.2, 1.0);
-    // droplets = mix_droplets(5.0, droplets, p, 0.2, 1.2);
-    // droplets = mix_droplets(6.0, droplets, p, 0.0, 1.0);
-    // droplets = mix_droplets(7.0, droplets, p, -0.1, 1.25);
-
     droplets = mix_droplets(0.0, droplets, p, 0.0, -0.5, 1.3);
     droplets = mix_droplets(1.0, droplets, p, 0.3, 0.0, 0.9);
     droplets = mix_droplets(2.0, droplets, p, -0.2, 0.0, 1.0);
@@ -107,13 +98,7 @@ float all_droplets(vec3 p) {
     droplets = mix_droplets(4.0, droplets, p, -0.2, 0.0, 1.0);
     droplets = mix_droplets(5.0, droplets, p, 0.2, 0.0, 1.2);
     droplets = mix_droplets(6.0, droplets, p, 0.1, -0.9, 1.0);
-    // droplets = mix_droplets(6.0, droplets, p, 0.1, -0.2, 1.0);
     droplets = mix_droplets(7.0, droplets, p, -0.1, 0.0, 1.25);
-
-    // droplets = mix_droplets(0.0, droplets, p, 1.0, -0.2, 0.0);
-    // droplets = mix_droplets(1.0, droplets, p, 0.2, -1.9, 0.9);
-    // droplets = mix_droplets(2.0, droplets, p, 0.2, -1.8, 1.0);
-    // droplets = mix_droplets(3.0, droplets, p, 0.1, -1.5, 1.8);
 
     return droplets;
 }
@@ -267,13 +252,13 @@ mat3 rotationXY( vec2 angle ) {
 
 void main() {
 	// default ray dir
-	vec3 dir = ray_dir( 5.3, u_resolution.xy, gl_FragCoord.xy );
+	vec3 dir = ray_dir( 5.3, u_resolution.xy * vec2(1.4, 1.0), gl_FragCoord.xy );
 
 	// default ray origin
 	vec3 eye = vec3( 0.0, 0.0, 3.0 );
 
 	// rotate camera
-	mat3 rot = rotationXY( ( (vec2(u_mouse_x, u_mouse_y) - u_resolution.xy) * -0.1 ).yx * vec2( 0.002, 0.002 ) );
+	mat3 rot = rotationXY( ( (vec2(u_mouse_x, u_mouse_y) - u_resolution.xy) * 0.2 ).yx * vec2( 0.002, 0.002 ) );
 	dir = rot * dir;
 	eye = rot * eye;
 

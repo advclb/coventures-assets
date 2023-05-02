@@ -1,5 +1,5 @@
 #ifdef GL_ES
-precision mediump float;
+precision lowp float;
 #endif
 
 uniform vec2 u_resolution;
@@ -11,12 +11,14 @@ uniform float u_scroll;
 
 // ray marching
 const float grad_step = 0.05;
-const float clip_far = 10.0;
+const float clip_far = 3.0;
 
 // math
-#define QUARTER_PI 0.7853981634
-#define HALF_PI 1.5707963268
-#define PI 3.14159265359
+#define QUARTER_PI 0.78
+#define HALF_PI 1.57
+#define PI 3.14
+
+const float sphere_radius = 0.6;
 
 float sdSphere( vec3 pos, float r ) {
 	return length( pos ) - r;
@@ -42,7 +44,7 @@ float sdUnion_s( float a, float b, float k ) {
 
 float droplet( vec3 p, float dist ) {
   // Decrease radius when droplet is inside sphere
-  float radius = min(u_scroll - 0.4, 0.6);
+  float radius = min(u_scroll - 0.4, sphere_radius);
   float box = sdBox(
       vec3(
           p.x + radius,
@@ -82,7 +84,7 @@ float dist_field( vec3 p ) {
 
     float dr = droplet(pos, max(u_scroll -0.9, 0.0));
     float dist = max(u_scroll * 1.5 - 1.5, 0.0);
-    float sphere = sdSphere( vec3(p.x, p.y + dist, p.z), 0.6 );
+    float sphere = sdSphere( vec3(p.x, p.y + dist, p.z), sphere_radius);
 
     return sdUnion_s(dr, sphere, 0.3);
 }
@@ -113,7 +115,6 @@ vec3 shading( vec3 v, vec3 n, vec3 dir, vec3 eye ) {
   vec3 Ks = vec3( 0.5 );
   vec3 Kd = vec3( 1.0 );
 
-	// light 0
 	{
 		vec3 light_pos   = vec3( 20.0, 20.0, 20.0 );
 		vec3 light_color = vec3( 1.0, 0.8, 0.9 );
@@ -124,19 +125,6 @@ vec3 shading( vec3 v, vec3 n, vec3 dir, vec3 eye ) {
 		specular = pow( specular, vec3( shininess ) );
 
 		final += light_color * mix( diffuse, specular, F ); 
-	}
-	
-	// light 1
-	{
-		vec3 light_pos   = vec3( -20.0, -20.0, -30.0 );
-		vec3 light_color = vec3( 0.3, 0.3, 0.3 );
-		vec3 vl = normalize( light_pos - v );
-		vec3 diffuse  = Kd * vec3( max( 0.0, dot( vl, n ) ) );
-		vec3 specular = vec3( max( 0.0, dot( vl, ref ) ) );
-    vec3 F = fresnel( Ks, normalize( vl - dir ), vl );
-		specular = pow( specular, vec3( shininess ) );
-
-		final += light_color * mix( diffuse, specular, F );
 	}
 
   vec3 mix_colors = mix(
